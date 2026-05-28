@@ -13,9 +13,14 @@ RAPIDJSON ?= $(STAN)lib/rapidjson_1.1.0/
 # required C++ includes
 INC_FIRST ?= -I $(STAN)src -I $(RAPIDJSON)
 
+# We can bump to C++17, even if Stan hasn't yet
+STAN_HAS_CXX17 ?= true
+CXXFLAGS_LANG ?= -std=c++17
+
 # makefiles needed for math library
 include $(MATH)make/compiler_flags
 include $(MATH)make/libraries
+include $(MATH)make/dependencies
 
 # Set -fPIC globally since we're always building a shared library
 override CXXFLAGS += -fPIC
@@ -195,3 +200,16 @@ $(MATH)make/% :
 	@echo ''
 	@echo 'And try building again'
 	@exit 1
+
+
+# EMSCRIPTEN is defined by emmake, so we can use it to detect if we're in an emscripten environment
+ifneq (,$(EMSCRIPTEN))
+%.js : %.o $(BRIDGE_O) $(SUNDIALS_TARGETS) $(MPI_TARGETS) $(TBB_TARGETS)
+	@echo '--- Linking C++ code ---'
+	$(LINK.cpp) -lm -o $(patsubst %.o, %.js, $(subst \,/,$<)) $(subst \,/,$*.o) $(BRIDGE_O) $(LDLIBS) $(SUNDIALS_TARGETS) $(MPI_TARGETS) $(TBB_TARGETS)
+else
+%.js :
+	@echo 'ERROR: Emscripten is required to compile to WebAssembly.'
+	@echo 'Please install Emscripten and make sure you are using `emmake`.'
+	@exit 1
+endif
