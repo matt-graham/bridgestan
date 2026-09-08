@@ -1,4 +1,6 @@
 check_compile_model_works <- function(name) {
+  base <- get_bridgestan_path(download = FALSE)
+
   file <- file.path(base, "test_models", name, paste0(name, ".stan"))
 
   lib <- file.path(base, "test_models", name, paste0(name, "_model.so"))
