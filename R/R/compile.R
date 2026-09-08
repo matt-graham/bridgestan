@@ -129,7 +129,7 @@ compile_model <- function(stan_file, stanc_args = NULL, make_args = NULL) {
     paste("-C", shQuote(get_bridgestan_path())),
     make_args,
     paste0("STANCFLAGS=", shQuote(stancflags)),
-    output
+    shQuote(output)
   )
 
   suppressWarnings({
